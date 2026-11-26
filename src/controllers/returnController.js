@@ -1,6 +1,7 @@
 import ReturnRequest from '../models/ReturnRequest.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import Notification from '../models/Notification.js';
 
 // Status human readable titles
 const RETURN_STATUS_TITLES = {
@@ -157,6 +158,20 @@ export const createCustomerReturn = async (req, res, next) => {
     order.returnStatus = 'pending';
     order.returnRequest = returnDoc._id;
     await order.save();
+
+    // Trigger Admin Notification for Return Delivery / Request
+    try {
+      await Notification.create({
+        type: 'RETURN_DELIVERY',
+        title: `Return Requested: #${order.orderNumber}`,
+        message: `${user.name || 'Customer'} requested a return for Order #${order.orderNumber}. Reason: ${customerReason || 'Size/Fit'}. Amount: ৳${totalReturnAmount.toLocaleString()}.`,
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        isRead: false
+      });
+    } catch (notifErr) {
+      console.error('[Notification Error]:', notifErr);
+    }
 
     return res.status(201).json({
       success: true,

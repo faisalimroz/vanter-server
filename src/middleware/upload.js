@@ -81,27 +81,27 @@ const fileFilter = (req, file, cb) => {
   const isImageMime = allowedImageMimes.includes(file.mimetype);
   const isVideoMime = allowedVideoMimes.includes(file.mimetype) || ['.mp4', '.webm', '.mov'].includes(ext);
 
-  // Products folder supports both high-res images and videos (up to 5 media items)
-  if (folder === 'products') {
+  // Products and Hero folders support both high-res still images and videos
+  if (folder === 'products' || folder === 'hero') {
     if (isImageMime || isVideoMime) {
       return cb(null, true);
     }
     return cb(
       new Error(
-        'Invalid product media format. Please upload JPEG, PNG, WebP images or MP4, WebM, MOV videos.'
+        'Invalid media format. Please upload JPEG, PNG, WebP images or MP4, WebM, MOV videos.'
       ),
       false
     );
   }
 
-  // All other folders (hero, categories, returns, etc.) accept images only
+  // All other folders (categories, returns, etc.) accept images only
   if (isImageMime) {
     return cb(null, true);
   }
 
   if (isVideoMime) {
     return cb(
-      new Error('Video uploads are only permitted for product catalog media.'),
+      new Error('Video uploads are only permitted for product catalog and hero carousel media.'),
       false
     );
   }

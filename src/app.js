@@ -18,6 +18,10 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import returnRoutes from './routes/returnRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import policyRoutes from './routes/policyRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+import faqRoutes from './routes/faqRoutes.js';
 
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -101,6 +105,10 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/returns', returnRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/policies', policyRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/admin/notifications', notificationRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/faqs', faqRoutes);
 
 // 404 handler for unmatched routes
 app.use((req, res) => {

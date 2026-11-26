@@ -118,6 +118,16 @@ const productSchema = new mongoose.Schema({
   rating: {
     average: { type: Number, default: 5.0 },
     count: { type: Number, default: 12 }
+  },
+  youtubeUrl: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  youtubeVideoId: {
+    type: String,
+    default: '',
+    trim: true
   }
 }, {
   timestamps: true,

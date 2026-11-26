@@ -14,6 +14,13 @@ const slugify = (text) => {
     .replace(/\-\-+/g, '-');
 };
 
+export const extractYouTubeVideoId = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = url.trim().match(regExp);
+  return match && match[1] ? match[1] : '';
+};
+
 export const getCatalogProducts = async (req, res, next) => {
   try {
     const {
@@ -111,9 +118,24 @@ export const getCatalogProducts = async (req, res, next) => {
       Product.countDocuments(filter)
     ]);
 
-    // Available filter facets for rich UI chips & counters
-    const availableSizes = await Product.distinct('variants.size', { isActive: true });
-    const availableColors = await Product.distinct('variants.color', { isActive: true });
+    // Available filter facets for rich UI chips, counters, and price sliders
+    const [availableSizes, availableColors, priceStats] = await Promise.all([
+      Product.distinct('variants.size', { isActive: true }),
+      Product.distinct('variants.color', { isActive: true }),
+      Product.aggregate([
+        { $match: { isActive: true } },
+        {
+          $group: {
+            _id: null,
+            minPrice: { $min: '$basePrice' },
+            maxPrice: { $max: '$basePrice' }
+          }
+        }
+      ])
+    ]);
+
+    const catalogMinPrice = priceStats[0]?.minPrice ?? 0;
+    const catalogMaxPrice = priceStats[0]?.maxPrice ?? 50000;
 
     return res.status(200).json({
       success: true,
@@ -126,7 +148,9 @@ export const getCatalogProducts = async (req, res, next) => {
       },
       facets: {
         sizes: availableSizes.filter(Boolean),
-        colors: availableColors.filter(Boolean)
+        colors: availableColors.filter(Boolean),
+        minPrice: catalogMinPrice,
+        maxPrice: catalogMaxPrice
       }
     });
   } catch (error) {
@@ -172,7 +196,15 @@ export const getAdminProducts = async (req, res, next) => {
     if (category) filter.category = category;
     if (q) {
       const regex = new RegExp(String(q).trim(), 'i');
-      filter.$or = [{ title: regex }, { sku: regex }];
+      const matchingCats = await Category.find({ name: regex }).select('_id');
+      const catIds = matchingCats.map((c) => c._id);
+
+      filter.$or = [
+        { title: regex },
+        { sku: regex },
+        { slug: regex },
+        ...(catIds.length > 0 ? [{ category: { $in: catIds } }] : [])
+      ];
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -218,7 +250,8 @@ export const createProduct = async (req, res, next) => {
       discount,
       isFeatured,
       isActive,
-      tags
+      tags,
+      youtubeUrl
     } = req.body;
 
     if (!title || !category || !basePrice) {
@@ -255,7 +288,9 @@ export const createProduct = async (req, res, next) => {
       discount: discount || { discountType: 'none', discountValue: 0 },
       isFeatured: Boolean(isFeatured),
       isActive: isActive !== undefined ? Boolean(isActive) : true,
-      tags: Array.isArray(tags) ? tags : []
+      tags: Array.isArray(tags) ? tags : [],
+      youtubeUrl: youtubeUrl ? String(youtubeUrl).trim() : '',
+      youtubeVideoId: extractYouTubeVideoId(youtubeUrl)
     });
 
     return res.status(201).json({
@@ -305,6 +340,10 @@ export const updateProduct = async (req, res, next) => {
     if (updateData.isFeatured !== undefined) product.isFeatured = Boolean(updateData.isFeatured);
     if (updateData.isActive !== undefined) product.isActive = Boolean(updateData.isActive);
     if (updateData.tags) product.tags = updateData.tags;
+    if (updateData.youtubeUrl !== undefined) {
+      product.youtubeUrl = String(updateData.youtubeUrl || '').trim();
+      product.youtubeVideoId = extractYouTubeVideoId(product.youtubeUrl);
+    }
 
     await product.save();
 

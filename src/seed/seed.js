@@ -11,6 +11,10 @@ import Order from '../models/Order.js';
 import ReturnRequest from '../models/ReturnRequest.js';
 import Review from '../models/Review.js';
 import Policy from '../models/Policy.js';
+import SiteSettings from '../models/SiteSettings.js';
+import Blog from '../models/Blog.js';
+import FAQ from '../models/FAQ.js';
+import Notification from '../models/Notification.js';
 import { DEFAULT_POLICIES } from '../controllers/policyController.js';
 
 dotenv.config();
@@ -188,6 +192,8 @@ export const seedDatabase = async () => {
           'Includes dust bag and spare tonal laces'
         ],
         tags: ['Sneakers', 'Court', 'Handmade', 'Best Seller'],
+        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        youtubeVideoId: 'dQw4w9WgXcQ',
         media: [
           {
             url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=1200',
@@ -538,13 +544,6 @@ export const seedDatabase = async () => {
 
     const sectionsData = [
       {
-        sectionKey: 'top_bar',
-        sectionName: 'Top Announcement Bar',
-        title: 'Cash on delivery nationwide · Free delivery in Dhaka over ৳5,000 · 7-day free exchanges',
-        isActive: true,
-        displayOrder: 0
-      },
-      {
         sectionKey: 'hero',
         sectionName: 'Hero Showcase',
         badgeText: 'New season · Autumn / Winter 2026',
@@ -757,7 +756,7 @@ export const seedDatabase = async () => {
         description: 'Bespoke modern menswear, handcrafted footwear, and niche artisanal fragrances in Bangladesh.',
         contentData: {
           hotline: '+880 1700-000000',
-          email: 'concierge@vantero.com',
+          email: 'info@vanterobd.com',
           storeAddress: 'Road 11, Banani, Dhaka 1213, Bangladesh',
           codNotice: 'Cash on delivery accepted nationwide. Every parcel inspected before dispatch.'
         },
@@ -1056,6 +1055,157 @@ export const seedDatabase = async () => {
       });
     }
     console.log('[Seed] Legal policies seeded (Terms, Privacy, Refund).');
+
+    // 10. Seed Site Delivery & Shipping Settings
+    await SiteSettings.deleteMany({});
+    await SiteSettings.create({
+      freeDeliveryThreshold: 5000,
+      insideDhakaCharge: 100,
+      outsideDhakaCharge: 150,
+      freeDeliveryMessage: 'Add ৳5,000 more for Free Delivery in Dhaka'
+    });
+    console.log('[Seed] Site delivery & shipping settings seeded.');
+
+    // 11. Seed Editorial Blogs (Vantero Journal)
+    await Blog.deleteMany({});
+    await Blog.create([
+      {
+        title: 'The Anatomy of Italian Calfskin Sneakers: Heritage, Stitches & Margom Soles',
+        slug: 'anatomy-of-italian-calfskin-sneakers',
+        excerpt: 'An inside look into the traditional vulcanization, full-grain Nappa hide selection, and Italian Margom rubber cupsoles that define the Court Low silhouette.',
+        content: `Craftsmanship is not an aesthetic choice; it is a discipline. When we envisioned the Vantero Court Low, our ambition was uncompromising: to construct a minimal sneaker that rivals the heritage ateliers of Civitanova Marche while engineered for the subtropical terrain and urban streets of Dhaka.
+
+## 1. Full-Grain Italian Calfskin Hides
+Unlike corrected-grain leathers that are sanded down and heavily coated in synthetic polyurethane, full-grain calfskin retains the animal's natural fiber density. This gives the sneaker its signature supple hand-feel, remarkable breathability, and the capacity to develop a rich, personal patina over years of wear.
+
+## 2. Italian Margom Rubber Cupsole
+The foundation of any heirloom footwear piece is the outsole. Margom rubber cupsoles are renowned throughout high luxury for their dense, abrasion-resistant vulcanized rubber compound. Each sole is not simply glued; it is 360-degree lock-stitched directly to the leather upper, ensuring the sole never separates even in humid climates.
+
+## 3. Calfskin Lining and Memory Footbed
+Synthetic mesh linings trap heat and produce discomfort. Inside every Vantero silhouette, your foot rests against buttery vegetable-tanned calfskin paired with a removable memory foam arch footbed that conforms gradually to your individual gait.
+
+- Hand-burnished edges
+- Waxed organic cotton laces
+- Reinforced heel counter for zero slippage`,
+        coverImage: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=1200',
+        author: 'Vantero Atelier Concierge',
+        tags: ['Footwear', 'Italian Leather', 'Court Low', 'Craftsmanship'],
+        metaTitle: 'The Anatomy of Italian Calfskin Sneakers | Vantero Bangladesh',
+        metaDescription: 'Discover the Italian leather sourcing, Margom soles, and hand-stitch construction behind Vantero footwear.',
+        isPublished: true,
+        views: 142,
+        publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+      },
+      {
+        title: 'Styling the Double-Breasted Wool Overcoat in Dhaka',
+        slug: 'styling-wool-overcoat-dhaka-perspective',
+        excerpt: 'How to wear structured double-breasted tailoring, unlined shoulders, and fine wool blends in moderate winter temperatures.',
+        content: `Winter in Dhaka is brief yet intensely sartorial. From late November evenings to mid-February galas and rooftop soirees, outer layers command the entire room.
+
+## The Architectural Silhouette
+A structured overcoat instantly balances casual underpinnings. Pairing our Charcoal Double-Breasted Overcoat with a crisp white crewneck sweater and pleated oatmeal trousers creates a balanced, European-inspired look that remains comfortable in 16°C to 22°C temperatures.
+
+## Layering Philosophy
+- **Base Layer:** Fine 16-gauge knitwear or a mercerized cotton tee.
+- **Mid Layer:** Unstructured lightweight blazer or soft cashmere scarf.
+- **Outer Shell:** Vantero 480gsm wool blend overcoat with natural horn buttons.
+
+Finishing the ensemble with pristine Court Low sneakers in Chalk White grounds the look with modern nonchalance.`,
+        coverImage: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=1200',
+        author: 'Sartorial Director',
+        tags: ['Menswear', 'Overcoats', 'Tailoring', 'Style Guide'],
+        metaTitle: 'Styling the Double-Breasted Overcoat in Dhaka | Vantero Journal',
+        metaDescription: 'Master the art of layering wool overcoats in Dhaka winter. Proportions, color palettes, and sneaker pairing.',
+        isPublished: true,
+        views: 98,
+        publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      },
+      {
+        title: 'The Olfactory Architecture of Nocturne: Oud, Smoke & Dark Amber',
+        slug: 'olfactory-architecture-of-nocturne',
+        excerpt: 'Deconstructing the 35% pure extrait concentration of our signature evening fragrance, handcrafted for humid evening projection.',
+        content: `In the world of niche perfumery, concentration is everything. Standard Eau de Parfum formulations range between 15% and 20% fragrance oil. Nocturne is formulated at an opulent **35% Extrait de Parfum concentration**.
+
+## Scent Progression
+- **Top Notes:** Smoked Pink Pepper, Italian Bergamot, Bitter Orange Blossom.
+- **Heart Notes:** Aged Wild Cambodian Agarwood (Oud), Birch Tar, Black Leather.
+- **Base Notes:** Dark Ambergris, Haitian Vetiver, Tonka Bean, Madagascar Vanilla.
+
+The outcome is an alluring, warm trail that remains prominent on garments for up to 48 hours without overwhelming close company.`,
+        coverImage: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&q=80&w=1200',
+        author: 'Master Parfumeur',
+        tags: ['Fragrance', 'Extrait de Parfum', 'Oud', 'Nocturne'],
+        metaTitle: 'Nocturne Extrait de Parfum Notes & Story | Vantero Bangladesh',
+        metaDescription: 'Explore the 35% concentration fragrance notes of Nocturne: Cambodian oud, birch tar, and ambergris.',
+        isPublished: true,
+        views: 215,
+        publishedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000)
+      }
+    ]);
+    console.log('[Seed] Editorial blogs seeded (3 articles).');
+
+    // 12. Seed Homepage FAQs
+    await FAQ.deleteMany({});
+    await FAQ.create([
+      {
+        question: 'Can I inspect the parcel before paying the Cash on Delivery amount?',
+        answer: 'Yes. Vantero provides an open doorstep inspection guarantee nationwide. You are fully entitled to verify the parcel seal, external packaging, and box integrity upon delivery by our authorized courier rider before handing over the cash payment.',
+        category: 'Ordering & Payment',
+        order: 1,
+        isActive: true
+      },
+      {
+        question: 'How long does delivery take inside and outside Dhaka?',
+        answer: 'Orders within Dhaka metropolitan city are fulfilled within 24 to 48 hours. Deliveries outside Dhaka across all 64 districts typically arrive within 2 to 4 business days via our premium logistics partner Steadfast Courier.',
+        category: 'Shipping & Delivery',
+        order: 2,
+        isActive: true
+      },
+      {
+        question: 'What is your 7-day post-delivery exchange and return policy?',
+        answer: 'If the size does not fit flawlessly or the silhouette does not meet your expectations, simply submit an exchange request from your order tracking page within 7 calendar days of delivery. Our courier rider will deliver your new size and collect the previous item at your doorstep.',
+        category: 'Returns & Exchanges',
+        order: 3,
+        isActive: true
+      },
+      {
+        question: 'Are Vantero sneakers crafted with genuine Italian leather?',
+        answer: 'Every pair of Vantero footwear is constructed with certified full-grain Italian calfskin uppers, supple calfskin lining, and authentic Italian Margom vulcanized rubber outsoles stitched 360-degrees around the perimeter.',
+        category: 'Craftsmanship & Quality',
+        order: 4,
+        isActive: true
+      },
+      {
+        question: 'How do I choose the right size for footwear and trousers?',
+        answer: 'Our footwear follows true-to-size European/Bangladeshi sizing (EU 39 to 45). If you are between sizes, we recommend selecting your normal dress shoe size. Our trousers feature waist sizing in inches (28 to 38) with concealed elasticized side adjusters for a tailored fit.',
+        category: 'Sizing & Fit',
+        order: 5,
+        isActive: true
+      }
+    ]);
+    console.log('[Seed] Homepage FAQs seeded (5 items).');
+
+    // 13. Seed Initial Admin Notifications
+    await Notification.deleteMany({});
+    await Notification.create([
+      {
+        type: 'NEW_ORDER',
+        title: 'New Cash on Delivery Order',
+        message: 'Order VT-20261124-7891 placed by Tanvir Hasan (Dhaka). Total: ৳14,500.',
+        orderNumber: 'VT-20261124-7891',
+        isRead: false,
+        createdAt: new Date(Date.now() - 15 * 60 * 1000)
+      },
+      {
+        type: 'RETURN_DELIVERY',
+        title: 'Size Exchange Request Submitted',
+        message: 'Customer requested size exchange (42 -> 43) for Court Low Sneakers.',
+        orderNumber: 'VT-20261124-7891',
+        isRead: false,
+        createdAt: new Date(Date.now() - 60 * 60 * 1000)
+      }
+    ]);
+    console.log('[Seed] Admin notifications seeded.');
 
     console.log('[Seed] Database seeding completed successfully!\n');
   } catch (error) {

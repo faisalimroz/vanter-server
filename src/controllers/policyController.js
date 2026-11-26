@@ -7,7 +7,7 @@ export const DEFAULT_POLICIES = {
     subtitle: 'Standard client agreement for luxury acquisitions and nationwide deliveries in Bangladesh.',
     summary: 'Governing the purchase of handcrafted footwear, tailored menswear, and bespoke fragrances through Vantero Bangladesh.',
     content: `### 1. Introduction & Acceptance
-Welcome to Vantero (referred to as "Vantero", "we", "our", or "us"). By accessing or making an acquisition through our website (vantero.com) or associated digital channels, you agree to be bound by these Terms of Service. Vantero operates from Road 11, Banani, Dhaka 1213, Bangladesh.
+Welcome to Vantero (referred to as "Vantero", "we", "our", or "us"). By accessing or making an acquisition through our website (https://vanterobd.com) or associated digital channels, you agree to be bound by these Terms of Service. Vantero operates from Road 11, Banani, Dhaka 1213, Bangladesh.
 
 ### 2. Luxury Craftsmanship & Catalog Accuracy
 Every Vantero creation—including Italian Nappa leather footwear, double-faced wool overcoats, tropical wool trousers, and artisanal extraits de parfum—is manufactured to exacting standards. Due to the handcrafted nature of artisanal leather and custom dying processes, slight natural grain textures and undertone variations are authentic hallmarks of genuine luxury materials.
@@ -62,7 +62,7 @@ We use secure, HttpOnly session cookies for authenticated login tokens. Local br
 - **Encryption:** All client communications and database records are safeguarded with TLS 1.3 encryption at rest and in transit.
 
 ### 5. Client Rights & Data Retention
-You may inspect, update, or request the deletion of your account and saved shipping addresses at any time through your Vantero Client Dashboard or by contacting our concierge at privacy@vantero.com.`
+You may inspect, update, or request the deletion of your account and saved shipping addresses at any time through your Vantero Client Dashboard or by contacting our concierge at info@vanterobd.com.`
   },
 
   'refund-policy': {

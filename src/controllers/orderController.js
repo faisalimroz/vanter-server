@@ -1,6 +1,8 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import SiteSettings from '../models/SiteSettings.js';
+import Notification from '../models/Notification.js';
 
 // Order number generator: VT-YYYYMMDD-XXXX
 const generateOrderNumber = () => {
@@ -77,12 +79,29 @@ export const createOrder = async (req, res, next) => {
       });
     }
 
-    // Delivery fee rule: Free delivery in Dhaka over ৳5,000.
-    // Standard rates: Inside Dhaka = ৳80, Outside Dhaka = ৳150.
-    const isDhaka = shippingAddress.district?.toLowerCase().includes('dhaka') || shippingAddress.city?.toLowerCase().includes('dhaka');
-    let deliveryFee = isDhaka ? 80 : 150;
-    if (isDhaka && subtotal >= 5000) {
-      deliveryFee = 0; // Free delivery in Dhaka over ৳5,000 per Figma promise
+    // Fetch current admin-configured site settings
+    const siteSettings = await SiteSettings.getSingleton();
+    const insideCharge = siteSettings.insideDhakaCharge ?? 100;
+    const outsideCharge = siteSettings.outsideDhakaCharge ?? 150;
+    const freeThreshold = siteSettings.freeDeliveryThreshold ?? 5000;
+
+    // Determine delivery area from client payload or fall back to district check
+    let area = req.body.deliveryArea;
+    if (!area || (area !== 'inside_dhaka' && area !== 'outside_dhaka')) {
+      const isDhaka = shippingAddress.district?.toLowerCase().includes('dhaka') || shippingAddress.city?.toLowerCase().includes('dhaka');
+      area = isDhaka ? 'inside_dhaka' : 'outside_dhaka';
+    }
+
+    let deliveryFee = 0;
+    if (area === 'outside_dhaka') {
+      deliveryFee = outsideCharge;
+    } else {
+      // Inside Dhaka: check if free threshold is met
+      if (freeThreshold > 0 && subtotal >= freeThreshold) {
+        deliveryFee = 0;
+      } else {
+        deliveryFee = insideCharge;
+      }
     }
 
     const totalAmount = subtotal + deliveryFee;
@@ -105,6 +124,7 @@ export const createOrder = async (req, res, next) => {
       items: validatedItems,
       shippingAddress,
       subtotal,
+      deliveryArea: area,
       deliveryFee,
       discountAmount: 0,
       totalAmount,
@@ -114,6 +134,20 @@ export const createOrder = async (req, res, next) => {
       customerNotes: customerNotes || '',
       trackingTimeline: initialTimeline
     });
+
+    // Create Admin Notification for New Order
+    try {
+      await Notification.create({
+        type: 'NEW_ORDER',
+        title: `New Order: ${order.orderNumber}`,
+        message: `${order.shippingAddress.recipientName} placed a COD order of ৳${order.totalAmount.toLocaleString()} (${order.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}).`,
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        isRead: false
+      });
+    } catch (notifErr) {
+      console.error('[Notification Error]:', notifErr);
+    }
 
     // Save address to user's profile if default or first
     if (user.savedAddresses.length === 0) {
