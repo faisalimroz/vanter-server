@@ -14,7 +14,9 @@ const generateOrderNumber = () => {
 export const createOrder = async (req, res, next) => {
   try {
     const { items, shippingAddress, customerNotes } = req.body;
-    const user = req.user;
+    const user = req.user || null;
+    const userId = user?._id || null;
+    const isGuest = !userId;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart items are required to place an order.' });
@@ -120,9 +122,23 @@ export const createOrder = async (req, res, next) => {
 
     const order = await Order.create({
       orderNumber,
-      customer: user._id,
+      customer: userId,
+      isGuest,
+      guestInfo: isGuest ? {
+        name: shippingAddress.recipientName,
+        phone: shippingAddress.phone,
+        email: shippingAddress.email || ''
+      } : undefined,
       items: validatedItems,
-      shippingAddress,
+      shippingAddress: {
+        recipientName: shippingAddress.recipientName,
+        phone: shippingAddress.phone,
+        email: shippingAddress.email || (user?.email || ''),
+        streetAddress: shippingAddress.streetAddress,
+        city: shippingAddress.city,
+        district: shippingAddress.district,
+        postalCode: shippingAddress.postalCode || ''
+      },
       subtotal,
       deliveryArea: area,
       deliveryFee,
@@ -140,7 +156,7 @@ export const createOrder = async (req, res, next) => {
       await Notification.create({
         type: 'NEW_ORDER',
         title: `New Order: ${order.orderNumber}`,
-        message: `${order.shippingAddress.recipientName} placed a COD order of ৳${order.totalAmount.toLocaleString()} (${order.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}).`,
+        message: `${order.shippingAddress.recipientName} placed a COD order of ৳${order.totalAmount.toLocaleString()} (${order.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}${isGuest ? ' · Guest' : ''}).`,
         orderId: order._id,
         orderNumber: order.orderNumber,
         isRead: false
@@ -149,14 +165,14 @@ export const createOrder = async (req, res, next) => {
       console.error('[Notification Error]:', notifErr);
     }
 
-    // Save address to user's profile if default or first
-    if (user.savedAddresses.length === 0) {
+    // Save address to user's profile if default or first (authenticated users only)
+    if (user && Array.isArray(user.savedAddresses) && user.savedAddresses.length === 0) {
       user.savedAddresses.push({
         ...shippingAddress,
         isDefault: true,
         label: 'Home'
       });
-      await user.save();
+      await user.save().catch(() => {});
     }
 
     return res.status(201).json({
@@ -170,7 +186,8 @@ export const createOrder = async (req, res, next) => {
         orderStatus: order.orderStatus,
         paymentMethod: order.paymentMethod,
         itemsCount: validatedItems.length,
-        createdAt: order.createdAt
+        createdAt: order.createdAt,
+        isGuest: order.isGuest
       }
     });
   } catch (error) {

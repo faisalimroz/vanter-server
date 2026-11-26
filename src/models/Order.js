@@ -39,13 +39,25 @@ const orderSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
+    default: null,
     index: true
+  },
+  isGuest: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  guestInfo: {
+    name: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    email: { type: String, default: '' }
   },
   items: [orderItemSchema],
   shippingAddress: {
     recipientName: { type: String, required: true },
     phone: { type: String, required: true },
+    email: { type: String, default: '' },
     streetAddress: { type: String, required: true },
     city: { type: String, required: true },
     district: { type: String, required: true },

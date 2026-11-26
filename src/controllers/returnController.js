@@ -21,7 +21,18 @@ export const createCustomerReturn = async (req, res, next) => {
     const { items, customerReason, customerNotes } = req.body;
     const user = req.user;
 
-    const order = await Order.findOne({ orderNumber, customer: user._id });
+    const order = await Order.findOne({
+      orderNumber,
+      ...(user
+        ? {
+            $or: [
+              { customer: user._id },
+              { customer: null, 'shippingAddress.phone': user.phone },
+              { customer: null, 'shippingAddress.email': user.email }
+            ]
+          }
+        : {})
+    });
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -134,7 +145,7 @@ export const createCustomerReturn = async (req, res, next) => {
         title: RETURN_STATUS_TITLES.pending,
         note: customerNotes || 'Return request registered by customer and awaiting concierge approval.',
         timestamp: new Date(),
-        updatedBy: user.name || 'Customer'
+        updatedBy: user?.name || 'Customer'
       }
     ];
 
@@ -142,7 +153,7 @@ export const createCustomerReturn = async (req, res, next) => {
       returnNumber,
       order: order._id,
       orderNumber: order.orderNumber,
-      customer: user._id,
+      customer: user?._id || order.customer || null,
       items: validatedReturnItems,
       totalReturnQuantity,
       totalReturnAmount,
