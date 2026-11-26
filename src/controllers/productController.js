@@ -1,6 +1,7 @@
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import SubCategory from '../models/SubCategory.js';
+import ShopTheLook from '../models/ShopTheLook.js';
 import { deleteLocalFile } from '../utils/fileStorage.js';
 
 const slugify = (text) => {
@@ -337,6 +338,7 @@ export const deleteProduct = async (req, res, next) => {
     }
 
     await Product.findByIdAndDelete(id);
+    await ShopTheLook.updateMany({}, { $pull: { products: { product: id } } });
 
     return res.status(200).json({
       success: true,

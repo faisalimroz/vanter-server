@@ -13,12 +13,18 @@ const slugify = (text) => {
 
 export const getPublicLooks = async (req, res, next) => {
   try {
-    const looks = await ShopTheLook.find({ isActive: true })
+    const rawLooks = await ShopTheLook.find({ isActive: true })
       .sort({ displayOrder: 1, createdAt: -1 })
       .populate({
         path: 'products.product',
         populate: { path: 'category', select: 'name slug' }
       });
+
+    const looks = rawLooks.map(look => {
+      const obj = look.toObject ? look.toObject({ virtuals: true }) : look;
+      obj.products = (obj.products || []).filter(item => item && item.product && item.product._id);
+      return obj;
+    });
 
     return res.status(200).json({
       success: true,
@@ -32,15 +38,18 @@ export const getPublicLooks = async (req, res, next) => {
 export const getLookBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const look = await ShopTheLook.findOne({ slug, isActive: true })
+    const rawLook = await ShopTheLook.findOne({ slug, isActive: true })
       .populate({
         path: 'products.product',
         populate: { path: 'category', select: 'name slug' }
       });
 
-    if (!look) {
+    if (!rawLook) {
       return res.status(404).json({ success: false, message: 'Lookbook not found.' });
     }
+
+    const look = rawLook.toObject ? rawLook.toObject({ virtuals: true }) : rawLook;
+    look.products = (look.products || []).filter(item => item && item.product && item.product._id);
 
     return res.status(200).json({
       success: true,
